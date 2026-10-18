@@ -13,24 +13,26 @@ namespace ViestiApi.Services
             _repository = repository;
         }
 
-        public async Task<List<Message>> GetPublicMessagesAsync() // palauttaa kaikki julkiset viestit (joilla ei ole vastaanottajaa)
+        public async Task<List<MessageDTO>> GetPublicMessagesAsync() // palauttaa kaikki julkiset viestit (joilla ei ole vastaanottajaa)
         {
             var messages = await _repository.GetAllAsync();
-            return messages.Where(m => m.ReceiverId == null).ToList();
-        }
-        public async Task<List<Message>> GetMessagesForUserAsync(int userId) // palauttaa kaikki viestit jotka käyttäjä voi nähdä
-        {
-            var messages = await _repository.GetAllAsync(); // haetaan kaikki viestit tietokannasta
             return messages
-                .Where(m => m.ReceiverId == null // käyttäjä voi nähdä viestin jos se on julkinen (ei vastaanottajaa)
-                         || m.SenderId == userId // tai jos käyttäjä on viestin lähettäjä
-                         || m.ReceiverId == userId) // tai jos käyttäjä on viestin vastaanottaja
+                .Where(m => m.ReceiverId == null) // suodatetaan viestit, joilla ei ole vastaanottajaa
+                .Select(m => MessageToDTO(m))
                 .ToList(); // palautetaan viestit listana
 
-            // | merkki kopioitavaksi
         }
-
-        public async Task<Message?> GetMessageAsync(long id, int userId) // palauttaa yksittäisen viestin id:n perusteella, mutta tarkistaa myös, että käyttäjä on oikeutettu näkemään viestin
+        public async Task<List<MessageDTO>> GetMessagesForUserAsync(int userId) // palauttaa kaikki viestit jotka käyttäjä voi nähdä
+        {
+            var messages = await _repository.GetAllAsync();
+            return messages
+                .Where(m => m.ReceiverId == null // suodatetaan viestit, joilla ei ole vastaanottajaa
+                    || m.SenderId == userId // tai viestit, jotka käyttäjä on lähettänyt
+                    || m.ReceiverId == userId) // tai viestit, jotka käyttäjä on vastaanottanut
+                .Select(m => MessageToDTO(m))
+                .ToList(); // palautetaan viestit listana
+        }
+        public async Task<MessageDTO?> GetMessageAsync(long id, int userId) // palauttaa yksittäisen viestin id:n perusteella, mutta tarkistaa myös, että käyttäjä on oikeutettu näkemään viestin
         {
             var message = await _repository.GetByIdAsync(id);
             if (message == null)
@@ -42,10 +44,10 @@ namespace ViestiApi.Services
                        || message.SenderId == userId //tai jos käyttäjä on viestin lähettäjä
                        || message.ReceiverId == userId; //tai jos käyttäjä on viestin vastaanottaja :)
 
-            return canSee ? message : null; // palautetaan viesti vain, jos käyttäjä saa nähdä sen eli muut ei voi nähdäsitä
+            return canSee ? MessageToDTO(message) : null; // jos käyttäjä ei voi nähdä viestiä, palautetaan null
         }
 
-        public async Task<Message?> SendMessageAsync(Message message) // viestin lähettäminen 
+        public async Task<MessageDTO?> SendMessageAsync(MessageDTO message) // viestin lähettäminen 
         {
             if (message.PreviousMessageId != null) // tarkistetaan, onko viesti vastaus johonkin vertaamalla viestin PreviousMessageId:hen, jos se on null, niin viesti ei ole vastaus
             {
@@ -56,17 +58,18 @@ namespace ViestiApi.Services
                 }
             }
 
-            message.SendTime = DateTime.UtcNow; // asetetaan viestin lähetysaika UTC-aikaan
+            var newMessage = DTOToMessage(message); // luodaan uusi viesti DTO:sta
+            newMessage.SendTime = DateTime.UtcNow; // asetetaan viestin lähetysaika UTC-aikaan
 
-            await _repository.AddAsync(message);
-            return message;
+            await _repository.AddAsync(newMessage); // lisätään viesti tietokantaan
+            return MessageToDTO(newMessage); // palautetaan viesti 
         }
 
-        public async Task<bool> UpdateMessageAsync(Message message, int userId)
+        public async Task<bool> UpdateMessageAsync(MessageDTO message, int userId)
         {
             var existing = await _repository.GetByIdAsync(message.Id);
 
-            if (existing == null || existing.SenderId != userId) // vain oman viestin saa muokata
+            if (existing == null || existing.SenderId != userId) // vain oman viestin saa muokata || kopioitavaksiiiiiii
             {
                 return false; // palautetaan false, jos viestiä ei löydy tai käyttäjä ei ole sen lähettäjä
             }
@@ -89,6 +92,32 @@ namespace ViestiApi.Services
 
             await _repository.DeleteAsync(existing);
             return true;
+        }
+
+        private MessageDTO MessageToDTO(Message message) // Muuntaa Message-olion MessageDTO-olioksi, jotta voidaan palauttaa viesti asiakkaalle
+        {
+            return new MessageDTO
+            {
+                Id = message.Id,
+                Title = message.Title,
+                Content = message.Content,
+                SenderId = message.SenderId,
+                ReceiverId = message.ReceiverId,
+                PreviousMessageId = message.PreviousMessageId,
+                SendTime = message.SendTime
+            };
+        }
+
+        private Message DTOToMessage(MessageDTO dto) // Muuntaa MessageDTO-olion Message-olioksi, jotta voidaan tallentaa viesti tietokantaan
+        {
+            return new Message
+            {
+                Title = dto.Title,
+                Content = dto.Content,
+                SenderId = dto.SenderId,
+                ReceiverId = dto.ReceiverId,
+                PreviousMessageId = dto.PreviousMessageId
+            };
         }
     }
 }

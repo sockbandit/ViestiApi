@@ -11,22 +11,33 @@ namespace ViestiApi.Services
             _repository = repository;
         }
 
-        public async Task<List<User>> GetAllUsersAsync() // Palauttaa kaikki käyttäjät tietokannasta, toimii samalla tavalla kuin GetAllAsync-metodi UserRepositoryssa
+        public async Task<List<UserDTO>> GetAllUsersAsync() // Palauttaa kaikki käyttäjät tietokannasta, toimii samalla tavalla kuin GetAllAsync-metodi UserRepositoryssa
         {
-            return await _repository.GetAllAsync();
+            var users = await _repository.GetAllAsync();
+            return users.Select(u => UserToDTO(u)).ToList(); // Muuntaa User-oliot UserDTO-olioiksi ja palauttaa ne listana)
         }
 
-        public async Task<User?> GetUserAsync(int id)
+        public async Task<UserDTO?> GetUserAsync(int id)
         {
-            return await _repository.GetByIdAsync(id);
+            var user = await _repository.GetByIdAsync(id); 
+            if (user == null)
+            {
+                return null; // Jos käyttäjää ei löydy, palautetaan null
+            }
+            return UserToDTO(user); // Muuntaa User-olion UserDTO-olioksi ja palauttaa sen
         }
 
-        public async Task<User?> GetUserByUsernameAsync(string username)
+        public async Task<UserDTO?> GetUserByUsernameAsync(string username)
         {
-            return await _repository.GetByUsernameAsync(username);
+            var user = await _repository.GetByUsernameAsync(username);
+            if (user == null)
+            {
+                return null; // Jos käyttäjää ei löydy, palautetaan null
+            }
+            return UserToDTO(user); // Muuntaa User-olion UserDTO-olioksi ja palauttaa sen
         }
 
-        public async Task<User?> CreateUserAsync(User user)
+        public async Task<UserDTO?> CreateUserAsync(UserCreateDTO user)
         {
             var existing = await _repository.GetByUsernameAsync(user.Username); // Tarkistetaan, onko käyttäjätunnus jo olemassa tietokannassa
             if (existing != null) // Jos käyttäjätunnus on jo olemassa, palautetaan null
@@ -34,17 +45,25 @@ namespace ViestiApi.Services
                 return null;
             }
 
-            user.JoinedAt = DateTime.UtcNow; // Asetetaan käyttäjän liittymisaika nykyhetkeen UTC aikavyöhykkeellä
-            await _repository.AddAsync(user); // Lisätään uusi käyttäjä tietokantaan
-            return user;
+            var newUser = new User // Luodaan uusi User-olio käyttäjän luomiseksi tietokantaan
+            {
+                Username = user.Username,
+                PasswordHash = user.Password,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                JoinedAt = DateTime.UtcNow
+            };
+            await _repository.AddAsync(newUser); 
+            return UserToDTO(newUser); // Muuntaa User-olion UserDTO-olioksi ja palauttaa sen
+
         }
 
-        public async Task<bool> UpdateUserAsync(User user) // Päivittää olemassa olevan käyttäjän tiedot tietokannassa
+        public async Task<bool> UpdateUserAsync(UserDTO user) // Päivittää olemassa olevan käyttäjän tiedot tietokannassa 
         {
             var existing = await _repository.GetByIdAsync(user.Id);
             if (existing == null) // Jos käyttäjää ei löydy, palautetaan false eli käyttäjä ei löytynyt
             {
-                return false;  // käyttäjää ei löytynyt
+                return false;  
             }
 
             existing.FirstName = user.FirstName; 
@@ -62,8 +81,21 @@ namespace ViestiApi.Services
                 return false;
             }
 
-            await _repository.DeleteAsync(user); // Poistetaan käyttäjä tietokannasta
+            await _repository.DeleteAsync(user); 
             return true;
+        }
+
+        private UserDTO UserToDTO(User user) // Muuntaa User-olion UserDTO-olioksi, jotta voidaan palauttaa vain tarvittavat tiedot käyttäjästä
+        {
+            return new UserDTO // Luodaan uusi UserDTO-olio ja asetetaan sen ominaisuudet User-olion arvojen perusteella
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                JoinedAt = user.JoinedAt,
+                LastLoginAt = user.LastLoginAt
+            };
         }
 
 
