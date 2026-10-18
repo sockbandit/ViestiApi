@@ -10,8 +10,10 @@ namespace ViestiApi.Models
         public string FirstName { get; set; } = ""; // Tallentaa käyttäjän etunimen tietokantaan
         public string LastName { get; set; } = ""; // Tallentaa käyttäjän sukunimen tietokantaa n
         public DateTime JoinedAt { get; set; } // Tallentaa käyttäjän liittymispäivämäärän tietokantaan
-        public DateTime LastLoginAt { get; set; } // Tallentaa käyttäjän viimeisimmän kirjautumispäivämäärän tietokantaan :)
 
+        //public DateTime LastLoginAt { get; set; } // vanha koodiversio, joka ei ollut nullable, joten käyttäjä ei välttämättä ollut kirjautunut sisään
+
+        public DateTime? LastLoginAt { get; set; } // Tallentaa käyttäjän viimeisimmän kirjautumispäivämäärän tietokantaan, ?=nullable, koska käyttäjä ei välttämättä ole kirjautunut sisään
 
     }
 }

@@ -30,7 +30,7 @@ namespace ViestiApi.Services
             // | merkki kopioitavaksi
         }
 
-        public async Task<Message?> GetMessageAsync(int id, int userId) // palauttaa yksittäisen viestin id:n perusteella, mutta tarkistaa myös, että käyttäjä on oikeutettu näkemään viestin
+        public async Task<Message?> GetMessageAsync(long id, int userId) // palauttaa yksittäisen viestin id:n perusteella, mutta tarkistaa myös, että käyttäjä on oikeutettu näkemään viestin
         {
             var message = await _repository.GetByIdAsync(id);
             if (message == null)
@@ -56,6 +56,8 @@ namespace ViestiApi.Services
                 }
             }
 
+            message.SendTime = DateTime.UtcNow; // asetetaan viestin lähetysaika UTC-aikaan
+
             await _repository.AddAsync(message);
             return message;
         }
@@ -76,7 +78,7 @@ namespace ViestiApi.Services
             return true;
         }
 
-        public async Task<bool> DeleteMessageAsync(int id, int userId)
+        public async Task<bool> DeleteMessageAsync(long id, int userId)
         {
             var existing = await _repository.GetByIdAsync(id); // haetaan viesti tietokannasta
 

@@ -5,14 +5,14 @@ namespace ViestiApi.Repositories
     public class MessageRepository : IMessageRepository
     {
         private readonly List<Message> _messages = new();
-        private int _nextId = 1;
+        private long _nextId = 1;
 
         public Task<List<Message>> GetAllAsync() // tässä metodissa palautetaan kaikki viestit listana async menetelmällä
         {
             return Task.FromResult(_messages.ToList());
         }
 
-        public Task<Message?> GetByIdAsync(int id) // tässä metodissa haetaan viesti id:n perusteella async menetelmällä
+        public Task<Message?> GetByIdAsync(long id) // tässä metodissa haetaan viesti id:n perusteella async menetelmällä
         {
             var message = _messages.FirstOrDefault(m => m.Id == id);
             return Task.FromResult(message);

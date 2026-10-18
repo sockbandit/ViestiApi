@@ -11,7 +11,7 @@ namespace ViestiApi.Repositories
         //-----------------------------------------------------
 
         Task<List<Message>> GetAllAsync(); // Hakee kaikki viestit tietokannasta asynkronisesti
-        Task<Message?> GetByIdAsync(int id); // Hakee viestin tietokannasta ID:n perusteella asynkronisesti
+        Task<Message?> GetByIdAsync(long id); // Hakee viestin tietokannasta ID:n perusteella asynkronisesti
         Task AddAsync(Message message); // Lisää uusi viesti tietokantaan asynkronisesti
         Task UpdateAsync(Message message); // Päivittää olemassa olevan viestin tiedot tietokannassa asynkronisesti
         Task DeleteAsync(Message message); // Poistaa viestin tietokannasta asynkronisesti
