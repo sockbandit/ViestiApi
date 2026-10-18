@@ -2,7 +2,7 @@
 
 namespace ViestiApi.Models
 {
-    public class Message // Message-luokka, joka kuvaa viestiä tietokannassa, MessageDTO-luokka, joka kuvaa viestiä tietokannassa ja siirtää dataa palvelimen ja asiakkaan välillä
+    public class Message // Luokka, joka kuvaa viestiä tietokannassa
     {
         public long Id { get; set; } // Tallentaa viestin ID:n tietokantaan
         [MaxLength(100)] 
@@ -17,7 +17,7 @@ namespace ViestiApi.Models
 
     }
 
-    public class MessageDTO // DTO = Data Transfer Object, eli olio, joka siirtää dataa palvelimen ja asiakkaan välillä, tässä tapauksessa se on tarkoitettu viestin näyttämiseen, joten se sisältää myös lähettäjän ja vastaanottajan käyttäjätiedot
+    public class MessageDTO // DTO = Data Transfer Object, eli olio, joka siirtää dataa palvelimen ja asiakkaan välillä
     {
         public long Id { get; set; }
         [MaxLength(100)]

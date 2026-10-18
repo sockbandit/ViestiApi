@@ -69,7 +69,7 @@ namespace ViestiApi.Services
         {
             var existing = await _repository.GetByIdAsync(message.Id);
 
-            if (existing == null || existing.SenderId != userId) // vain oman viestin saa muokata || kopioitavaksiiiiiii
+            if (existing == null || existing.SenderId != userId) // vain oman viestin saa muokata 
             {
                 return false; // palautetaan false, jos viestiä ei löydy tai käyttäjä ei ole sen lähettäjä
             }
