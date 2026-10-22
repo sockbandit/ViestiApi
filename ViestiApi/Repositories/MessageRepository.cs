@@ -1,45 +1,43 @@
-﻿using ViestiApi.Models;
+﻿using Microsoft.EntityFrameworkCore;   
+using ViestiApi.Models;
 
 namespace ViestiApi.Repositories
 {
     public class MessageRepository : IMessageRepository
     {
-        private readonly List<Message> _messages = new();
-        private long _nextId = 1;
-
-        public Task<List<Message>> GetAllAsync() // tässä metodissa palautetaan kaikki viestit listana async menetelmällä
+        private readonly MessageServiceContext _context; // tietokantayhteys
+        
+        public MessageRepository(MessageServiceContext context) // konstruktori, joka ottaa vastaan MessageServiceContextin
         {
-            return Task.FromResult(_messages.ToList());
+            _context = context;
         }
 
-        public Task<Message?> GetByIdAsync(long id) // tässä metodissa haetaan viesti id:n perusteella async menetelmällä
+        public async Task<List<Message>> GetAllAsync() // tässä metodissa haetaan kaikki viestit listana async menetelmällä
         {
-            var message = _messages.FirstOrDefault(m => m.Id == id);
-            return Task.FromResult(message);
+            return await _context.Messages.ToListAsync(); // palautetaan kaikki viestit tietokannasta listana
         }
 
-        public Task AddAsync(Message message) // tässä metodissa lisätään uusi viesti listaan async menetelmällä
+        public async Task<Message?> GetByIdAsync(long id) // tässä metodissa haetaan viesti id:n perusteella async menetelmällä
         {
-            message.Id = _nextId;
-            _nextId++;
-            _messages.Add(message);
-            return Task.CompletedTask;
+            return await _context.Messages.FindAsync(id); // palautetaan viesti tietokannasta id:n perusteella
         }
 
-        public Task UpdateAsync(Message message) // tässä metodissa päivitetään olemassa oleva viesti listassa async menetelmällä
+        public async Task AddAsync(Message message) // tässä metodissa lisätään uusi viesti tietokantaan async menetelmällä
         {
-            var index = _messages.FindIndex(m => m.Id == message.Id); // etsitään viestin indeksi listasta idn perusteella
-            if (index != -1)
-            {
-                _messages[index] = message; 
-            }
-            return Task.CompletedTask;
+            _context.Messages.Add(message); // lisätään viesti tietokantaan
+            await _context.SaveChangesAsync(); // tallennetaan muutokset tietokantaan
         }
 
-        public Task DeleteAsync(Message message) // tässä metodissa poistetaan viesti listasta async menetelmällä
+        public async Task UpdateAsync(Message message) // tässä metodissa päivitetään olemassa oleva viesti async menetelmällä
         {
-            _messages.Remove(message);
-            return Task.CompletedTask;
+            _context.Messages.Update(message); // päivitetään viesti tietokantaan
+            await _context.SaveChangesAsync(); // tallennetaan muutokset tietokantaan
+        }
+
+        public async Task DeleteAsync(Message message) // tässä metodissa poistetaan viesti async menetelmällä
+        {
+            _context.Messages.Remove(message); // poistetaan viesti tietokannasta
+            await _context.SaveChangesAsync(); // tallennetaan muutokset tietokantaan
         }
     }
 }

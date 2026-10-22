@@ -1,4 +1,6 @@
 
+using Microsoft.EntityFrameworkCore;
+using ViestiApi.Models;
 using ViestiApi.Repositories;
 using ViestiApi.Services;
 
@@ -16,10 +18,13 @@ namespace ViestiApi
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             
-            builder.Services.AddSingleton<IMessageRepository, MessageRepository>(); // Lis‰‰ viestivaraston palveluna
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>(); // Lis‰‰ viestivaraston palveluna
             builder.Services.AddScoped<IMessageService, MessageService>(); // Lis‰‰ viestipalvelun palveluna
-            builder.Services.AddSingleton<IUserRepository, UserRepository>(); // Lis‰‰ k‰ytt‰j‰varaston palveluna
+            builder.Services.AddScoped<IUserRepository, UserRepository>(); // Lis‰‰ k‰ytt‰j‰varaston palveluna
             builder.Services.AddScoped<IUserService, UserService>(); // Lis‰‰ k‰ytt‰j‰palvelun palveluna
+
+            builder.Services.AddDbContext<MessageServiceContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("ViestiDB"))); // Lis‰‰ tietokantayhteyden palveluna, k‰ytt‰en SQL Serveri‰ ja ViestiDB-yhteysmerkkijonoa
+
 
             var app = builder.Build();
 

@@ -1,52 +1,49 @@
-﻿using ViestiApi.Models;
+﻿using Microsoft.EntityFrameworkCore;    
+using ViestiApi.Models;
 
 namespace ViestiApi.Repositories
 {
     public class UserRepository : IUserRepository // toteuttaa IUserRepository-rajapinnan käyttäjien hallintaan
     {
-        private readonly List<User> _users = new();  // väliaikainen "tietokanta"
-        private int _nextId = 1;                     // seuraava vapaa id käyttäjälle
-
-        public Task<List<User>> GetAllAsync() // palauttaa kaikki käyttäjät listana
-        {
-            return Task.FromResult(_users.ToList());
-        }
-
-        public Task<User?> GetByIdAsync(int id) // hakee käyttäjän Id:n perusteellaa
-        {
-            var user = _users.FirstOrDefault(u => u.Id == id);
-            return Task.FromResult(user);
-        }
-
-        public Task<User?> GetByUsernameAsync(string username) // hakee käyttäjän käyttäjä nimen perusteella
-        {
-            var user = _users.FirstOrDefault(u => u.Username == username);
-            return Task.FromResult(user);
-        }
-
-        public Task AddAsync(User user) // lisää uuden käyttäjän listaan
-        {
-            user.Id = _nextId;  // annettaan uudelle käyttäjälle oma id
-            _nextId++; // kasvatetaan seuraavaa vapaata id:tä
-            _users.Add(user);
-            return Task.CompletedTask; // palautetaaan 
-        }
-
-        public Task UpdateAsync(User user)
-        {
-            var index = _users.FindIndex(u => u.Id == user.Id);
-            if (index != -1)
-            {
-                _users[index] = user;  // korvataan vanha käyttäjä uudella
-            }
-            return Task.CompletedTask;
-        }
-
-        public Task DeleteAsync(User user) // poistetaan käyttäjä listasta
-        {
-            _users.Remove(user);
-            return Task.CompletedTask;
-        }
+        private readonly MessageServiceContext _context; // tietokantayhteys
         
+        public UserRepository(MessageServiceContext context) // konstruktori, joka ottaa vastaan MessageServiceContextin
+        {
+            _context = context;
+        }   
+
+        public async Task<List<User>> GetAllAsync() // palauttaa kaikki käyttäjät listana
+        {
+            return await _context.Users.ToListAsync(); // hakee kaikki käyttäjät tietokannasta
+        }
+
+        public async Task<User?> GetByIdAsync(int id) // hakee käyttäjän id:n perusteella
+        {
+            return await _context.Users.FindAsync(id); // hakee käyttäjän tietokannasta id:n perusteella
+        }
+
+        public async Task<User?> GetByUsernameAsync(string username) // hakee käyttäjän käyttäjänimen perusteella
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username); // hakee käyttäjän tietokannasta käyttäjänimen perusteella
+        }
+
+        public async Task AddAsync(User user) // lisää uuden käyttäjän tietokantaan
+        {
+            _context.Users.Add(user); // lisää käyttäjän tietokantaan
+            await _context.SaveChangesAsync(); // tallentaa muutokset tietokantaan
+        }
+
+        public async Task UpdateAsync(User user) // päivittää olemassa olevan käyttäjän tiedot tietokannassa
+        {
+            _context.Users.Update(user); // päivittää käyttäjän tietokantaan
+            await _context.SaveChangesAsync(); // tallentaa muutokset tietokantaan
+        }
+
+        public async Task DeleteAsync(User user) // poistaa käyttäjän tietokannasta
+        {
+            _context.Users.Remove(user); // poistaa käyttäjän tietokannasta
+            await _context.SaveChangesAsync(); // tallentaa muutokset tietokantaan
+        }
+
     }
 }
