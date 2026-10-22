@@ -69,7 +69,7 @@ namespace ViestiApi.Services
             existing.FirstName = user.FirstName; 
             existing.LastName = user.LastName;
 
-            await _repository.UpdateAsync(existing); // Päivitetään käyttäjän tiedot tietokantaan etunimen ja sukunimen osalta
+            await _repository.UpdateAsync(existing); // Päivitetään käyttäjän tiedot tietokantaan etunimen ja sukunimen osalt
             return true;
         }
 
