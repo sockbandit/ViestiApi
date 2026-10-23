@@ -53,6 +53,12 @@ namespace ViestiApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PreviousMessageId");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
                     b.ToTable("Messages");
                 });
 
@@ -89,6 +95,29 @@ namespace ViestiApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ViestiApi.Models.Message", b =>
+                {
+                    b.HasOne("ViestiApi.Models.Message", "PreviousMessage")
+                        .WithMany()
+                        .HasForeignKey("PreviousMessageId");
+
+                    b.HasOne("ViestiApi.Models.User", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId");
+
+                    b.HasOne("ViestiApi.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PreviousMessage");
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 #pragma warning restore 612, 618
         }

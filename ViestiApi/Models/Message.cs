@@ -14,7 +14,9 @@ namespace ViestiApi.Models
         public DateTime? SendTime { get; set; } // Tallentaa viestin lähetysaikaan tietokantaan, ?=nullable, koska viesti voi olla luonnos
 
         //senderid, receiverid ja previousmessageid on vierasavaimia eli ne viittaa toisen olion id:seen.
-
+        public User? Sender { get; set; } // Viittaa käyttäjään, joka on lähettänyt viestin
+        public User? Receiver { get; set; } // Viittaa käyttäjään, joka on vastaanottanut viestin
+        public Message? PreviousMessage { get; set; } // Viittaa edelliseen viestiin, jos kyseessä on vastaus
     }
 
     public class MessageDTO // DTO = Data Transfer Object, eli olio, joka siirtää dataa palvelimen ja asiakkaan välillä

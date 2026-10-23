@@ -1,6 +1,31 @@
 @ViestiApi_HostAddress = http://localhost:5177
 
-GET {{ViestiApi_HostAddress}}/weatherforecast/
+### Luo käyttäjä
+POST {{ViestiApi_HostAddress}}/api/Users
+Content-Type: application/json
+
+{
+  "username": "kassu",
+  "password": "kassu123",
+  "firstName": "kassu",
+  "lastName": "testaaja"
+}
+
+### Hae kaikki käyttäjät
+GET {{ViestiApi_HostAddress}}/api/Users
 Accept: application/json
 
-###
+### Hae yksi käyttäjä
+GET {{ViestiApi_HostAddress}}/api/Users/1
+Accept: application/json
+
+### Validointitesti: liian lyhyt salasana (pitäisi antaa 400)
+POST {{ViestiApi_HostAddress}}/api/Users
+Content-Type: application/json
+
+{
+  "username": "testaaja2",
+  "password": "abc",
+  "firstName": "Testi",
+  "lastName": "Kaksi"
+}
